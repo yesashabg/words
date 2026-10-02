@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Слова</title>
+  <meta name="description" content="Тренажёр английских слов с интервальным повторением">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#f6f4ef" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#15161a" media="(prefers-color-scheme: dark)">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Слова">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+<main id="app">
+
+  <!-- Главная -->
+  <section id="view-home" class="view">
+    <header class="topbar">
+      <h1 class="brand">Слова</h1>
+      <button class="icon-btn" type="button" data-go="settings" aria-label="Настройки">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>
+      </button>
+    </header>
+
+    <div id="install-banner" class="banner" hidden>
+      <span>Добавь приложение на экран «Домой»: «Поделиться» → «На экран „Домой“». Занимайся из иконки — прогресс в Safari и в иконке хранится отдельно.</span>
+    </div>
+
+    <div class="panel">
+      <p class="eyebrow">Сегодня</p>
+      <p class="today-counts"><span id="due-count">0</span> повторить · <span id="new-count">0</span> новых</p>
+      <button id="start-btn" class="btn primary big" type="button">Начать</button>
+      <p id="today-note" class="note"></p>
+    </div>
+
+    <div class="tiles">
+      <div class="tile"><b id="stat-streak">0</b><span id="stat-streak-label">дней подряд</span></div>
+      <div class="tile"><b id="stat-learning">0</b><span>учу</span></div>
+      <div class="tile"><b id="stat-known">0</b><span>выучено</span></div>
+    </div>
+
+    <div id="backup-banner" class="banner" hidden>
+      <span>Пора сохранить копию прогресса.</span>
+      <button id="banner-backup-btn" class="btn small" type="button">Сохранить</button>
+    </div>
+
+    <button class="row-link" type="button" data-go="list">
+      <span>Все слова</span>
+      <span class="meta"><span id="stat-total">0</span> →</span>
+    </button>
+  </section>
+
+  <!-- Карточка -->
+  <section id="view-card" class="view card-view" hidden>
+    <header class="session-bar">
+      <button id="exit-btn" class="icon-btn" type="button" aria-label="Закончить занятие">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+      <div class="progress" aria-hidden="true"><div id="progress-fill"></div></div>
+      <span id="progress-text" class="progress-text">0 / 0</span>
+    </header>
+
+    <article id="flash" class="flash">
+      <div id="card-front" class="front"></div>
+      <div id="card-back" class="back" hidden></div>
+    </article>
+
+    <footer class="actions">
+      <button id="reveal-btn" class="btn primary big" type="button">Показать ответ</button>
+      <div id="grade-btns" class="grades" hidden>
+        <button class="btn grade again" type="button" data-grade="0">Не помню<small id="ivl-0"></small></button>
+        <button class="btn grade hard" type="button" data-grade="1">С трудом<small id="ivl-1"></small></button>
+        <button class="btn grade good" type="button" data-grade="2">Помню<small id="ivl-2"></small></button>
+      </div>
+    </footer>
+  </section>
+
+  <!-- Готово -->
+  <section id="view-done" class="view" hidden>
+    <div class="done">
+      <div class="done-mark" aria-hidden="true">✓</div>
+      <h2>Готово!</h2>
+      <p id="done-summary" class="done-summary"></p>
+      <p id="done-tomorrow" class="note"></p>
+    </div>
+    <button class="btn primary big" type="button" data-go="home">На главную</button>
+  </section>
+
+  <!-- Все слова -->
+  <section id="view-list" class="view" hidden>
+    <header class="topbar">
+      <button class="icon-btn" type="button" data-go="home" aria-label="Назад">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <h2 class="title">Все слова <span id="list-count" class="meta"></span></h2>
+      <span class="spacer"></span>
+    </header>
+    <input id="search" class="search" type="search" placeholder="Найти слово или перевод"
+           autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    <div id="filter-chips" class="chips">
+      <button class="chip" type="button" data-filter="all">Все</button>
+      <button class="chip" type="button" data-filter="new">Новые</button>
+      <button class="chip" type="button" data-filter="learning">Учу</button>
+      <button class="chip" type="button" data-filter="known">Выучено</button>
+    </div>
+    <ul id="word-list" class="word-list"></ul>
+  </section>
+
+  <!-- Настройки -->
+  <section id="view-settings" class="view" hidden>
+    <header class="topbar">
+      <button class="icon-btn" type="button" data-go="home" aria-label="Назад">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <h2 class="title">Настройки</h2>
+      <span class="spacer"></span>
+    </header>
+
+    <div class="group">
+      <p class="label">Новых слов в день</p>
+      <div class="seg" data-setting="newPerDay">
+        <button type="button" data-value="5">5</button>
+        <button type="button" data-value="8">8</button>
+        <button type="button" data-value="10">10</button>
+      </div>
+      <p class="hint">Методология советует 7–10. Если брать больше, очередь повторений растёт слишком быстро.</p>
+    </div>
+
+    <div class="group">
+      <p class="label">Направление карточек</p>
+      <div class="seg" data-setting="direction">
+        <button type="button" data-value="mixed">Смешанное</button>
+        <button type="button" data-value="en-ru">Англ → рус</button>
+        <button type="button" data-value="ru-en">Рус → англ</button>
+      </div>
+      <p class="hint">Смешанное: каждое второе повторение идёт с русского, и слово нужно сказать вслух по-английски. Так советует методология.</p>
+    </div>
+
+    <div class="group">
+      <label class="switch-row" for="autoplay"><span>Сразу произносить слово</span><input id="autoplay" type="checkbox"></label>
+      <p class="hint">Второе нажатие на динамик — медленнее.</p>
+    </div>
+
+    <div class="group">
+      <p class="label">Копия прогресса</p>
+      <p class="hint">Прогресс хранится только на этом устройстве. Раз в две недели сохраняй копию: в «Файлы» или себе в Telegram.</p>
+      <div class="row">
+        <button id="backup-btn" class="btn" type="button">Сохранить копию</button>
+        <button id="restore-btn" class="btn" type="button">Загрузить копию</button>
+      </div>
+      <input id="restore-file" type="file" hidden>
+      <p id="backup-info" class="hint"></p>
+    </div>
+
+    <div class="group">
+      <p class="label">Откуда слова</p>
+      <p class="hint">Новые слова добавляет Claude Code. Они появятся сами, когда откроешь приложение с интернетом.</p>
+      <p id="about-info" class="hint"></p>
+    </div>
+  </section>
+
+</main>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>
