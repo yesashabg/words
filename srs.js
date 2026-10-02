@@ -76,7 +76,7 @@ export function planToday(words, cards, settings, day) {
     if (c.intro === day) introducedToday += 1;
     if (c.due != null && c.due <= day) due.push(w.id);
   }
-  const room = Math.max(0, (settings?.newPerDay ?? 8) - introducedToday);
+  const room = Math.max(0, (settings?.newPerDay ?? 20) - introducedToday);
   for (const w of words) {
     if (fresh.length >= room) break;
     const c = cards[w.id];

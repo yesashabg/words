@@ -5,6 +5,8 @@ import * as srs from './srs.js';
 const STATE_KEY = 'slova.state.v1';
 const WORDS_KEY = 'slova.words.v1';
 const BACKUP_EVERY_DAYS = 14;
+const NEW_PER_DAY_OPTIONS = [10, 20, 30, 40]; // те же значения, что в кнопках настроек
+const NEW_PER_DAY_DEFAULT = 20;
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -16,7 +18,7 @@ const PLAY_ICON =
 
 function defaultState() {
   return {
-    settings: { newPerDay: 8, direction: 'mixed', autoplay: true },
+    settings: { newPerDay: NEW_PER_DAY_DEFAULT, direction: 'mixed', autoplay: true },
     cards: {}, // прогресс по словам, ключ — id слова
     log: {}, // сколько карточек пройдено по дням: { [день]: { r: ответов, n: новых } }
     lastBackup: null,
@@ -24,12 +26,19 @@ function defaultState() {
   };
 }
 
+// Сохранённые настройки поверх стандартных. Норму, которой больше нет в кнопках (старые 5/8), заменяем стандартной.
+function mergeSettings(saved) {
+  const settings = { ...defaultState().settings, ...(saved || {}) };
+  if (!NEW_PER_DAY_OPTIONS.includes(settings.newPerDay)) settings.newPerDay = NEW_PER_DAY_DEFAULT;
+  return settings;
+}
+
 function loadState() {
   const base = defaultState();
   try {
     const saved = JSON.parse(localStorage.getItem(STATE_KEY));
     if (!saved || typeof saved !== 'object') return base;
-    return { ...base, ...saved, settings: { ...base.settings, ...saved.settings } };
+    return { ...base, ...saved, settings: mergeSettings(saved.settings) };
   } catch {
     return base;
   }
@@ -648,8 +657,7 @@ async function restore(file) {
   const n = Object.keys(data.state.cards).length;
   const question = `Заменить текущий прогресс копией от ${when}? В копии ${n} ${srs.plural(n, 'слово', 'слова', 'слов')} с прогрессом.`;
   if (!window.confirm(question)) return;
-  const base = defaultState();
-  state = { ...base, ...data.state, settings: { ...base.settings, ...data.state.settings }, knownIds: state.knownIds };
+  state = { ...defaultState(), ...data.state, settings: mergeSettings(data.state.settings), knownIds: state.knownIds };
   saveState();
   renderView(currentView);
   toast('Прогресс восстановлен');
